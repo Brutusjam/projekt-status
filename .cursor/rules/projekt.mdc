@@ -1,0 +1,113 @@
+---
+description: Projektregeln Projektcockpit Prozessentwicklung, Gemeinde Altdorf
+globs:
+alwaysApply: true
+---
+
+# Projektcockpit Prozessentwicklung: Cursor-Regeln
+
+## Kontext
+
+Online-Cockpit für die Projekte des Prozessverantwortlichen der Gemeinde Altdorf.
+Ein Admin (schreibend), Leserkonten (nur lesend). Kein System of Record, sondern
+Kommunikationsinstrument. Massgebliche Spezifikation: `docs/ARBEITSPAPIER.md`.
+Bei Widerspruch zwischen diesem File und dem Arbeitspapier gilt das Arbeitspapier;
+den Widerspruch melden statt still entscheiden.
+
+## Arbeitsweise (zwingend)
+
+1. **Plan vor Implementation.** Vor jeder Etappe zuerst einen kurzen Umsetzungsplan
+   vorlegen (betroffene Dateien, Datenmodelländerungen, Tests) und Freigabe abwarten.
+2. **Etappendisziplin.** Es wird ausschliesslich die aktuell beauftragte Etappe
+   (E1 bis E7 gemäss Arbeitspapier, Abschnitt 12) umgesetzt. Keine vorgezogenen
+   Features, kein Scope Creep. Vorbereitende Schemafelder für V2 (`mailAbo`,
+   `publiziertAm`, Tabelle MAILVERSAND) sind die einzige erlaubte Ausnahme und
+   bereits in E1 enthalten.
+3. **Offene Fragen explizit stellen** statt Annahmen zu treffen. Ungeklärtes als
+   K-Punkt benennen.
+4. **Keine neuen Abhängigkeiten** ohne Rückfrage. Der Stack ist fixiert.
+
+## Stack (fixiert)
+
+- Next.js, App Router, TypeScript `strict: true`
+- Tailwind CSS + shadcn/ui
+- Prisma mit SQLite (eine Datenbankdatei, ein Schreibprozess)
+- Auth.js v5, ausschliesslich Credentials-Provider
+- Zod für jede Eingabevalidierung, serverseitig
+- Vitest für Tests gegen `lib/domain/`
+- Resend erst in E5, SDK vorher nicht installieren
+
+## Architekturregeln
+
+- **Sämtliche Geschäftslogik in `lib/domain/`.** Server Actions und Route Handler
+  sind dünne Adapter: Auth prüfen, Zod-Parse, Domain-Funktion aufrufen. React-
+  Komponenten enthalten keine Geschäftslogik.
+- **Autorisierung serverseitig durchsetzen (R1).** Jede Schreiboperation prüft die
+  Rolle ADMIN auf dem Server. UI-Ausblenden genügt nicht.
+- **Leser sehen nur Publiziertes (R2).** Jede Query für Leseransichten filtert auf
+  `status = PUBLIZIERT`. Projekte ohne publizierten Inhalt erscheinen für Leser nicht.
+- **Sortierung Timeline (R3):** absteigend nach `datum`, bei Gleichstand nach
+  Erfassungszeitpunkt.
+- **Keine Automatismen bei Status und Terminen (R5).** Statuswechsel nur durch
+  explizite Admin-Aktion.
+- **Archivieren statt löschen (R6).** Harte Löschung nur für Fehleingaben, mit
+  Bestätigungsdialog.
+- **Export/Import verlustfrei (R7).** JSON-Export umfasst alle Entitäten; ein
+  Import stellt den Zustand vollständig wieder her. Round-Trip-Test in Vitest.
+- **Eine Instanz (R10).** Keine Annahmen über mehrere Prozesse, keine In-Memory-
+  Caches, die bei Neustart Datenverlust bedeuten.
+
+## Sicherheit
+
+- Rate Limiting auf dem Login (R9): 5 Fehlversuche, danach Sperrfrist. Sessions
+  mit begrenzter Laufzeit. `mustChangePassword` erzwingt Passwortwechsel beim
+  ersten Login, bevor irgendeine andere Seite erreichbar ist.
+- Passwörter mit argon2 oder bcrypt hashen. Nie loggen.
+- Keine externen Skripte, kein Tracking, Fonts lokal via @fontsource bundeln.
+- Login-Seite neutral halten: kein Gemeindename, kein Wappen, kein Inhaltshinweis.
+- Hinweis auf Datenregel R4 (keine Personendaten, keine vertraulichen Inhalte)
+  sichtbar im Admin-Bereich platzieren.
+
+## Design
+
+- shadcn/ui-Defaults nie unverändert übernehmen. Theme vollständig auf den
+  Hausstil anpassen: eigene Farbtokens, Typografie, Radien und Abstände in
+  `globals.css` bzw. Tailwind-Konfiguration definieren, bevor die erste
+  Ansicht gebaut wird.
+- Dezente Übergänge (z.B. beim Aufklappen der Update-Details), klare visuelle
+  Hierarchie, grosszügiger Weissraum. Keine Effekt-Bibliotheken, keine
+  verspielten Animationen.
+- Typografie: Space Grotesk (Titel), Inter (Fliesstext), via @fontsource.
+- Stilelemente gemäss Altdorfer Hausstil: Eyebrow-Labels, Karten mit Status-Badges,
+  dunkler Akzentblock für Hervorhebungen.
+- Statusfarben: IDEE grau, IN_ABKLAERUNG blau, IN_UMSETZUNG amber, PILOTBETRIEB
+  violett, ABGESCHLOSSEN grün, PAUSIERT hellgrau mit Rahmen.
+- Wappen und Briefkopf-Logik nur in eingeloggten Ansichten, nicht auf der Login-Seite.
+
+## Sprache und Konventionen
+
+- UI-Texte in Schweizer Hochdeutsch: kein ß (immer ss), Datumsanzeige TT.MM.JJJJ,
+  Apostroph als Tausendertrennzeichen.
+- Keine Gedankenstriche (em- oder en-dash) als Satzzeichen in Texten; stattdessen
+  Kommas, Doppelpunkte oder Punkte.
+- Enum-Werte im Code englisch-neutral in SCREAMING_SNAKE_CASE wie im Arbeitspapier
+  definiert, Anzeige-Labels deutsch (z.B. IN_ABKLAERUNG als «In Abklärung»).
+- Datenbankzeiten in UTC speichern, Anzeige in Europe/Zurich.
+
+## Tests als Abnahme
+
+- Pro Etappe gilt die Vitest-Suite gegen `lib/domain/` als Abnahmekriterium
+  (Zuordnung siehe Arbeitspapier, Abschnitt 12).
+- Mindestens abgedeckt: Sichtbarkeitsfilter Leser (R2), Timeline-Sortierung (R3),
+  Autorisierung der Schreiboperationen (R1), Export-Import-Round-Trip (R7),
+  Rate-Limiting-Logik (R9).
+- Tests deterministisch, ohne Netzwerk, mit SQLite-Testdatenbank oder In-Memory.
+
+## Deployment-Annahmen
+
+- Etappe A: fly.io, Region `fra`, genau eine Maschine, SQLite auf persistentem
+  Volume. `fly.toml` entsprechend konfigurieren, kein Autoscaling.
+- Etappe B (später): Docker Compose auf internem Server. Dockerfile und Compose-
+  Datei von Anfang an so schreiben, dass beide Ziele dieselben Artefakte nutzen.
+- Konfiguration ausschliesslich über Umgebungsvariablen, dokumentiert in
+  `BETRIEB.md` (wird ab E4 gepflegt).
