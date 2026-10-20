@@ -97,6 +97,9 @@ h2 {
 }
 .update-title { font-weight: 700; margin-bottom: 4px; }
 .muted { color: var(--ad-ink-soft); }
+.md p { margin: 0 0 6px 0; }
+.md ul, .md ol { margin: 0 0 6px 0; padding-left: 20px; }
+.md li { margin: 2px 0; }
 table { width: 100%; border-collapse: collapse; margin-top: 12px; }
 th, td { border-bottom: 1px solid #e5e5e5; padding: 8px 4px; text-align: left; }
 th { font-weight: 700; }
@@ -129,12 +132,59 @@ function escapeHtml(value: string): string {
     .replaceAll('"', "&quot;");
 }
 
-function markdownToPlain(text: string): string {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/\*(.*?)\*/g, "$1")
-    .replace(/^#+\s+/gm, "")
-    .replace(/\n/g, "<br>");
+function renderInlineMarkdown(escaped: string): string {
+  return escaped
+    .replace(/&lt;u&gt;(.*?)&lt;\/u&gt;/g, "<u>$1</u>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/__(.+?)__/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/(^|\W)_(.+?)_(?=\W|$)/g, "$1<em>$2</em>");
+}
+
+/** Einfache Markdown-Umsetzung für PDFs: Absätze, Listen, fett, kursiv, unterstrichen. */
+export function markdownToHtml(text: string): string {
+  const blocks: string[] = [];
+  let paragraph: string[] = [];
+  let list: { tag: "ul" | "ol"; items: string[] } | null = null;
+
+  const flushParagraph = () => {
+    if (paragraph.length > 0) {
+      blocks.push(`<p>${paragraph.map(renderInlineMarkdown).join("<br>")}</p>`);
+      paragraph = [];
+    }
+  };
+  const flushList = () => {
+    if (list) {
+      const items = list.items.map((item) => `<li>${renderInlineMarkdown(item)}</li>`);
+      blocks.push(`<${list.tag}>${items.join("")}</${list.tag}>`);
+      list = null;
+    }
+  };
+
+  for (const rawLine of escapeHtml(text).split(/\r?\n/)) {
+    const line = rawLine.replace(/^#+\s+/, "");
+    const bullet = line.match(/^\s*[-*+]\s+(.*)$/);
+    const numbered = line.match(/^\s*\d+\.\s+(.*)$/);
+    const item = bullet ?? numbered;
+
+    if (item) {
+      const tag = bullet ? "ul" : "ol";
+      flushParagraph();
+      if (list && list.tag !== tag) flushList();
+      list ??= { tag, items: [] };
+      list.items.push(item[1]);
+    } else if (line.trim() === "") {
+      flushParagraph();
+      flushList();
+    } else {
+      flushList();
+      paragraph.push(line);
+    }
+  }
+  flushParagraph();
+  flushList();
+
+  return blocks.join("");
 }
 
 export function renderProjectPdfHtml(
@@ -148,7 +198,7 @@ export function renderProjectPdfHtml(
       <article class="update">
         <div class="muted">${formatDate(update.datum)}</div>
         <div class="update-title">${escapeHtml(update.kurztitel)}</div>
-        <div>${markdownToPlain(escapeHtml(update.detailtext))}</div>
+        <div class="md">${markdownToHtml(update.detailtext)}</div>
       </article>`,
     )
     .join("");
@@ -170,9 +220,9 @@ export function renderProjectPdfHtml(
       <div class="muted">Startdatum</div><div>${formatDate(project.startdatum)}</div>
     </div>
     <h2>Kurzbeschrieb</h2>
-    <p>${escapeHtml(project.kurzbeschrieb)}</p>
+    <div class="md">${markdownToHtml(project.kurzbeschrieb)}</div>
     <h2>Wirkung</h2>
-    <p>${escapeHtml(project.wirkung)}</p>
+    <div class="md">${markdownToHtml(project.wirkung)}</div>
     <h2>Updates</h2>
     ${updatesHtml || "<p class=\"muted\">Keine publizierten Updates.</p>"}
   </div>

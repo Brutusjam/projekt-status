@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
+import { MarkdownContent } from "@/components/projekte/markdown-content";
 import { StatusBadge } from "@/components/projekte/status-badge";
 import { UpdateTimelineItem } from "@/components/projekte/update-timeline-item";
 import { formatDate } from "@/lib/format";
@@ -42,9 +43,10 @@ export function ProjectDetailView({
         <div className="space-y-6 rounded-2xl border border-border bg-card p-6">
           <div>
             <p className="eyebrow mb-2">Kurzbeschrieb</p>
-            <p className="leading-relaxed text-foreground">
-              {project.kurzbeschrieb}
-            </p>
+            <MarkdownContent
+              content={project.kurzbeschrieb}
+              className="markdown-content--inherit"
+            />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -75,7 +77,10 @@ export function ProjectDetailView({
 
         <aside className="rounded-2xl bg-accent-block p-6 text-accent-block-foreground">
           <p className="eyebrow mb-3 text-accent-block-foreground/70">Wirkung</p>
-          <p className="leading-relaxed">{project.wirkung}</p>
+          <MarkdownContent
+            content={project.wirkung}
+            className="markdown-content--inherit"
+          />
         </aside>
       </section>
 

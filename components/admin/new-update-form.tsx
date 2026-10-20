@@ -5,7 +5,7 @@ import { createUpdateAction } from "@/app/(admin)/admin/actions/updates";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { toDateInputValue } from "@/lib/date-input";
 
 export function NewUpdateForm({ projectId }: { projectId: number }) {
@@ -36,11 +36,16 @@ export function NewUpdateForm({ projectId }: { projectId: number }) {
         <Input id="kurztitel" name="kurztitel" required />
       </FormField>
       <FormField
-        label="Detailtext (Markdown)"
+        label="Detailtext"
         htmlFor="detailtext"
         error={state.fieldErrors?.detailtext}
       >
-        <Textarea id="detailtext" name="detailtext" className="min-h-40" required />
+        <MarkdownEditor
+          id="detailtext"
+          name="detailtext"
+          className="min-h-40"
+          required
+        />
       </FormField>
       <FormField label="PDF-Anhang (optional)" htmlFor="pdf">
         <Input id="pdf" name="pdf" type="file" accept="application/pdf,.pdf" />
