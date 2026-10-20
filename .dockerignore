@@ -1,0 +1,27 @@
+.git
+.gitignore
+.next
+node_modules
+npm-debug.log*
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+prisma/dev.db
+prisma/dev.db-journal
+docs
+tests
+coverage
+.cursor
+.vscode
+agent-transcripts
+*.md
+!BETRIEB.md
+Dockerfile
+docker-compose.yml
+fly.toml
+Logo.jpg
+Logo nur Wappen.jpg
+docs/Investitionsplanung und Budget_Bau_Anforderungen_v0.4.pdf
+docs/design-system-starter.zip

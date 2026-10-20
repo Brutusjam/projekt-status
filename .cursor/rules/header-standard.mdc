@@ -1,0 +1,30 @@
+---
+description: Header-Standard Gemeinde Altdorf. Anwenden bei allem, was einen Kopfbereich, Briefkopf, Seitenlayout oder PDF-Ausgabe betrifft (Webapp-Header, Dokument-Header, Playwright-PDF-Rendering).
+globs:
+  - "components/layout/**"
+  - "app/**/layout.tsx"
+  - "app/globals.css"
+  - "**/*header*"
+  - "**/*.html"
+alwaysApply: false
+---
+
+# Header-Standard Gemeinde Altdorf (Kurzfassung für KI)
+
+Vollständige Spezifikation: @docs/header-standard-altdorf.md
+Visuelles Soll-Bild: @docs/header-standard-beispiele.html
+
+## Verbindliche Regeln
+
+1. Jeder Kopfbereich folgt dem Drei-Zonen-Aufbau: Kontext links, Wappen mit Wortmarke «Gemeinde Altdorf» rechts, durchgehende Trennlinie darunter. Das Wappen steht nie links.
+2. Zwei Varianten, keine Mischformen:
+   - Variante A (Dokument/PDF): Kopfzeile mit Abteilung links (Inter 12.5px fett) und Wappen 44px rechts, Trennlinie 1.5px in --ad-rule, darunter Adressblock links (--ad-ink-soft) und Dokumenttyp/Datum fett rechts.
+   - Variante B (Webapp): einzeilige Leiste, Eyebrow «GEMEINDE ALTDORF» (Space Grotesk 11px, Versalien, letter-spacing 0.08em, --ad-ink-soft) über dem App-Titel (Space Grotesk 17px fett), Wappen 32px rechts, Trennlinie 1px in --ad-rule-soft. Kein Adressblock.
+3. Ausschliesslich die --ad-Tokens aus der Spezifikation verwenden. Keine Hardcode-Farben, -Schriftgrössen oder -Abstände im Header. Tokens liegen in app/globals.css unter :root (Next.js) bzw. im <style>-Block (Single-File-Tools).
+4. Schriften: Space Grotesk nur für Titel und Eyebrow, Inter für alles andere. Bezug via npm pack @fontsource/inter@5 und @fontsource/space-grotesk@5. Keine CDN- oder Google-Fonts-Links. In Single-File-Tools als Base64-woff2 einbetten, in Next.js lokal unter public/fonts/.
+5. Logo-Asset: public/logo-altdorf.png bzw. Base64-Data-URI. Nie strecken, nie einfärben, nie auf farbigem Hintergrund. Alt-Text immer «Gemeinde Altdorf».
+6. CSS-Klassen im Header mit Präfix ad- benennen (ad-doc-header__*, ad-app-header__*), Markup und Klassennamen aus der Spezifikation unverändert übernehmen.
+7. PDF-Ausgabe nur über die Playwright-Pipeline: sync_playwright, Viewport 794x1123px, device_scale_factor=2, document.body.scrollHeight auslesen, pg.pdf() mit width='794px', height=f'{h+2}px', Margins 0, print_background=True. Einseitiges durchlaufendes PDF bevorzugen. Padding auf .sheet nicht für Print-Media entfernen. Keine anderen PDF-Bibliotheken für gestaltete Dokumente.
+8. Sichtbare Texte in Schweizer Hochdeutsch: kein ß, Datum als TT.MM.JJJJ, Apostroph als Tausendertrennzeichen, keine Gedanken- oder Halbgeviertstriche als Satzzeichen.
+9. In Next.js wird der App-Header als Server Component components/layout/AppHeader.tsx umgesetzt. Tailwind-Klassen dürfen Tokens via var(--ad-...) referenzieren.
+10. Abweichungen vom Standard nur auf ausdrückliche Anweisung, und dann im README unter «Abweichungen Header-Standard» dokumentieren.

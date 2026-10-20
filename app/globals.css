@@ -1,26 +1,265 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-space-grotesk);
+  --font-mono: ui-monospace, monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-accent-block: var(--accent-block);
+  --color-accent-block-foreground: var(--accent-block-foreground);
+  --color-brand-rose: var(--brand-rose);
+  --color-brand-rose-strong: var(--brand-rose-strong);
+  --color-brand-rose-muted: var(--brand-rose-muted);
+  --color-status-idee: var(--status-idee);
+  --color-status-idee-foreground: var(--status-idee-foreground);
+  --color-status-abklaerung: var(--status-abklaerung);
+  --color-status-abklaerung-foreground: var(--status-abklaerung-foreground);
+  --color-status-umsetzung: var(--status-umsetzung);
+  --color-status-umsetzung-foreground: var(--status-umsetzung-foreground);
+  --color-status-pilot: var(--status-pilot);
+  --color-status-pilot-foreground: var(--status-pilot-foreground);
+  --color-status-abgeschlossen: var(--status-abgeschlossen);
+  --color-status-abgeschlossen-foreground: var(--status-abgeschlossen-foreground);
+  --color-status-pausiert: var(--status-pausiert);
+  --color-status-pausiert-foreground: var(--status-pausiert-foreground);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --font-inter: "Inter", system-ui, sans-serif;
+  --font-space-grotesk: "Space Grotesk", system-ui, sans-serif;
+
+  /* Header-Standard Gemeinde Altdorf (docs/header-standard-altdorf.md) */
+  --ad-ink: #1a1a1a;
+  --ad-ink-soft: #555555;
+  --ad-rule: #1a1a1a;
+  --ad-rule-soft: #d9d9d9;
+  --ad-bg: #ffffff;
+  --ad-accent: #b5121b;
+  --ad-font-head: "Space Grotesk", system-ui, sans-serif;
+  --ad-font-body: "Inter", system-ui, sans-serif;
+  --ad-fs-body: 12.5px;
+  --ad-fs-app-body: 14px;
+  --ad-fs-app-title: 20px;
+  --ad-header-logo-h: 44px;
+  --ad-header-logo-h-app: 44px;
+  --ad-header-gap: 24px;
+  --ad-rule-w: 1.5px;
+
+  --brand-rose: oklch(0.94 0.045 355);
+  --brand-rose-muted: oklch(0.97 0.025 355);
+  --brand-rose-strong: oklch(0.52 0.14 355);
+  --background: oklch(0.99 0.012 355);
+  --foreground: oklch(0.24 0.03 260);
+  --card: oklch(1 0.008 355);
+  --card-foreground: oklch(0.24 0.03 260);
+  --popover: oklch(1 0.008 355);
+  --popover-foreground: oklch(0.24 0.03 260);
+  --primary: oklch(0.52 0.14 355);
+  --primary-foreground: oklch(0.99 0.01 355);
+  --secondary: oklch(0.96 0.03 355);
+  --secondary-foreground: oklch(0.32 0.06 355);
+  --muted: oklch(0.96 0.025 355);
+  --muted-foreground: oklch(0.48 0.04 355);
+  --accent: oklch(0.94 0.045 355);
+  --accent-foreground: oklch(0.38 0.1 355);
+  --destructive: oklch(0.55 0.2 25);
+  --border: oklch(0.9 0.03 355);
+  --input: oklch(0.92 0.025 355);
+  --ring: oklch(0.72 0.08 355);
+  --radius: 0.75rem;
+  --accent-block: oklch(0.3 0.07 355);
+  --accent-block-foreground: oklch(0.98 0.02 355);
+  --status-idee: oklch(0.88 0.01 260);
+  --status-idee-foreground: oklch(0.35 0.02 260);
+  --status-abklaerung: oklch(0.88 0.06 250);
+  --status-abklaerung-foreground: oklch(0.32 0.08 250);
+  --status-umsetzung: oklch(0.9 0.08 85);
+  --status-umsetzung-foreground: oklch(0.38 0.1 75);
+  --status-pilot: oklch(0.88 0.08 300);
+  --status-pilot-foreground: oklch(0.34 0.1 300);
+  --status-abgeschlossen: oklch(0.9 0.06 145);
+  --status-abgeschlossen-foreground: oklch(0.32 0.08 145);
+  --status-pausiert: oklch(0.95 0.005 106);
+  --status-pausiert-foreground: oklch(0.45 0.02 260);
+  --sidebar: oklch(0.99 0.012 355);
+  --sidebar-foreground: oklch(0.24 0.03 260);
+  --sidebar-primary: oklch(0.52 0.14 355);
+  --sidebar-primary-foreground: oklch(0.99 0.01 355);
+  --sidebar-accent: oklch(0.94 0.045 355);
+  --sidebar-accent-foreground: oklch(0.38 0.1 355);
+  --sidebar-border: oklch(0.9 0.03 355);
+  --sidebar-ring: oklch(0.72 0.08 355);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-space-grotesk);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.14em] text-brand-rose-strong;
+  }
+
+  .surface-rose {
+    @apply bg-brand-rose-muted;
+  }
+}
+
+.ad-page-shell {
+  width: 100%;
+  max-width: 90rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.ad-app-header {
+  background: var(--ad-bg);
+}
+
+.ad-app-header__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 30px;
+  padding-bottom: 22px;
+}
+
+.ad-app-header__id {
+  min-width: 0;
+}
+
+.ad-app-header__eyebrow {
+  display: block;
+  font-family: var(--ad-font-head);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ad-ink-soft);
+}
+
+.ad-app-header__title {
+  margin: 2px 0 0 0;
+  font-family: var(--ad-font-head);
+  font-size: var(--ad-fs-app-title);
+  font-weight: 700;
+  color: var(--ad-ink);
+  line-height: 1.25;
+}
+
+.ad-app-header__logo {
+  height: var(--ad-header-logo-h-app);
+  width: auto;
+  flex-shrink: 0;
+}
+
+.ad-app-nav {
+  background: var(--ad-bg);
+}
+
+.ad-app-nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding-top: 16px;
+  padding-bottom: 8px;
+}
+
+.ad-app-nav__link {
+  font-family: var(--ad-font-body);
+  font-size: var(--ad-fs-app-body);
+  font-weight: 500;
+  color: var(--ad-ink-soft);
+  padding: 6px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.ad-app-nav__link:hover {
+  background: var(--brand-rose-muted);
+  color: var(--ad-ink);
+}
+
+.markdown-content {
+  @apply space-y-3 text-sm leading-relaxed text-muted-foreground;
+}
+
+.markdown-content p {
+  @apply m-0;
+}
+
+.markdown-content strong {
+  @apply font-medium text-foreground;
+}
+
+.markdown-content ul {
+  @apply list-disc space-y-1 pl-5;
+}
+
+.markdown-content ol {
+  @apply list-decimal space-y-1 pl-5;
+}
+
+.timeline-detail {
+  animation: timeline-detail-in 180ms ease-out;
+}
+
+@keyframes timeline-detail-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

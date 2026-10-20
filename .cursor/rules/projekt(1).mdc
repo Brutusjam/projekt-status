@@ -86,8 +86,8 @@ den Widerspruch melden statt still entscheiden.
 
 ## Sprache und Konventionen
 
-- UI-Texte in Schweizer Hochdeutsch: kein ß (immer ss), Datumsanzeige TT.MM.JJJJ,
-  Apostroph als Tausendertrennzeichen.
+- UI-Texte in Schweizer Hochdeutsch: Du-Form (kein Sie), kein ß (immer ss),
+  Datumsanzeige TT.MM.JJJJ, Apostroph als Tausendertrennzeichen.
 - Keine Gedankenstriche (em- oder en-dash) als Satzzeichen in Texten; stattdessen
   Kommas, Doppelpunkte oder Punkte.
 - Enum-Werte im Code englisch-neutral in SCREAMING_SNAKE_CASE wie im Arbeitspapier

@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Rolle {
+  ADMIN
+  LESER
+}
+
+enum ProjektStatus {
+  IDEE
+  IN_ABKLAERUNG
+  IN_UMSETZUNG
+  PILOTBETRIEB
+  ABGESCHLOSSEN
+  PAUSIERT
+}
+
+enum UpdateStatus {
+  ENTWURF
+  PUBLIZIERT
+}
+
+enum MailversandStatus {
+  GESENDET
+  FEHLGESCHLAGEN
+}
+
+model Benutzer {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  email              String   @unique
+  rolle              Rolle
+  passwortHash       String
+  mustChangePassword Boolean  @default(true)
+  mailAbo            Boolean  @default(true)
+  aktiv              Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Projekt {
+  id                   Int           @id @default(autoincrement())
+  titel                String
+  abteilung            String
+  ansprechperson       String
+  status               ProjektStatus
+  startdatum           DateTime
+  naechsterTermin      DateTime?
+  naechsterTerminLabel String?
+  kurzbeschrieb        String
+  wirkung              String
+  archiviert           Boolean       @default(false)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  updates              Update[]
+
+  @@index([archiviert, status])
+}
+
+model Update {
+  id                 Int          @id @default(autoincrement())
+  projektId          Int
+  datum              DateTime
+  kurztitel          String
+  detailtext         String
+  status             UpdateStatus @default(ENTWURF)
+  publiziertAm       DateTime?
+  pdfDateiname       String?
+  pdfMimeType        String?
+  pdfGroesse         Int?
+  pdfGespeichertAm   DateTime?
+  createdAt          DateTime     @default(now())
+  projekt            Projekt      @relation(fields: [projektId], references: [id], onDelete: Cascade)
+  mailversand        Mailversand[]
+
+  @@index([projektId, datum])
+}
+
+model Mailversand {
+  id         Int               @id @default(autoincrement())
+  updateId   Int
+  empfaenger String
+  gesendetAm DateTime          @default(now())
+  status     MailversandStatus
+  update     Update            @relation(fields: [updateId], references: [id], onDelete: Cascade)
+}
