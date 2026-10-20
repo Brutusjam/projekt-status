@@ -88,13 +88,13 @@ Falls Depot aus dem Firmennetz (Firewall/Proxy) nicht erreichbar ist: Fallback a
 
 `.github/workflows/fly-deploy.yml` führt bei jedem Push und Pull Request Lint und Tests aus. Bei einem Push auf `master` (z.B. nach dem Mergen eines Pull Requests) wird anschliessend automatisch auf fly.io deployt. Manuell auslösen: GitHub → Actions → „Test & Deploy“ → „Run workflow“.
 
-Einmalige Einrichtung:
+Einmalige Einrichtung: Deploy-Token erstellen, entweder im Browser (ohne flyctl) unter [fly.io/dashboard](https://fly.io/dashboard) → App `projektcockpit-altdorf` → **Tokens** → **Create Deploy Token**, oder mit flyctl:
 
 ```bash
 fly tokens create deploy --app projektcockpit-altdorf
 ```
 
-Den ausgegebenen Token in GitHub unter *Settings → Secrets and variables → Actions → New repository secret* als `FLY_API_TOKEN` speichern.
+Den Token in GitHub unter *Settings → Secrets and variables → Actions → New repository secret* als `FLY_API_TOKEN` speichern.
 
 Der Container-Entrypoint setzt die Rechte auf `/data` (inkl. `uploads/`), führt `prisma migrate deploy` als User `nextjs` aus und startet danach die App. SQLite liegt unter `/data/projektcockpit.db`, PDF-Anhänge unter `/data/uploads/updates/`.
 
