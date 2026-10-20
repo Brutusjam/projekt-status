@@ -1,0 +1,44 @@
+# Prüft jeden Push und Pull Request und deployt master automatisch auf fly.io.
+# Voraussetzung: Repository-Secret FLY_API_TOKEN
+# (erstellen mit: fly tokens create deploy --app projektcockpit-altdorf)
+name: Test & Deploy
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Lint & Tests
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:./ci.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+  deploy:
+    name: Deploy fly.io
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: fly-deploy
+      cancel-in-progress: false
+    environment:
+      name: production
+      url: https://projektcockpit-altdorf.fly.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only --ha=false
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
