@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 
 type ProjectFormProps = {
   action: (formData: FormData) => void;
@@ -144,7 +144,7 @@ export function ProjectFormFields({
         htmlFor="kurzbeschrieb"
         error={state.fieldErrors?.kurzbeschrieb}
       >
-        <Textarea
+        <MarkdownEditor
           id="kurzbeschrieb"
           name="kurzbeschrieb"
           defaultValue={initial?.kurzbeschrieb}
@@ -153,7 +153,7 @@ export function ProjectFormFields({
       </FormField>
 
       <FormField label="Wirkung" htmlFor="wirkung" error={state.fieldErrors?.wirkung}>
-        <Textarea
+        <MarkdownEditor
           id="wirkung"
           name="wirkung"
           defaultValue={initial?.wirkung}

@@ -3,9 +3,12 @@
 import { useSyncExternalStore } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { remarkUnderline } from "@/lib/markdown/remark-underline";
+import { cn } from "@/lib/utils";
 
 type MarkdownContentProps = {
   content: string;
+  className?: string;
 };
 
 function subscribe() {
@@ -20,7 +23,7 @@ function getServerSnapshot() {
   return false;
 }
 
-export function MarkdownContent({ content }: MarkdownContentProps) {
+export function MarkdownContent({ content, className }: MarkdownContentProps) {
   const ready = useSyncExternalStore(
     subscribe,
     getClientSnapshot,
@@ -29,13 +32,15 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
 
   if (!ready) {
     return (
-      <div className="markdown-content whitespace-pre-wrap">{content}</div>
+      <div className={cn("markdown-content whitespace-pre-wrap", className)}>
+        {content}
+      </div>
     );
   }
 
   return (
-    <div className="markdown-content">
-      <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
+    <div className={cn("markdown-content", className)}>
+      <Markdown remarkPlugins={[remarkGfm, remarkUnderline]}>{content}</Markdown>
     </div>
   );
 }

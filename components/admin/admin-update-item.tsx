@@ -15,7 +15,7 @@ import { MarkdownContent } from "@/components/projekte/markdown-content";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { formatDate } from "@/lib/format";
 import { toDateInputValue } from "@/lib/date-input";
 import { UPDATE_STATUS_LABELS } from "@/lib/labels";
@@ -131,7 +131,7 @@ export function AdminUpdateItem({
           </FormField>
         </div>
         <FormField label="Detailtext" htmlFor={`detailtext-${update.id}`}>
-          <Textarea
+          <MarkdownEditor
             id={`detailtext-${update.id}`}
             name="detailtext"
             defaultValue={update.detailtext}
