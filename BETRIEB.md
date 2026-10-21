@@ -178,3 +178,7 @@ Solange extern gehostet: keine Personendaten, keine vertraulichen Inhalte (Betri
 ## Update-PDF-Anhänge
 
 Pro Update kann genau ein PDF (max. 10 MB) angehängt werden. Dateien liegen unter `UPLOAD_DIR/updates/{updateId}.pdf`. Leser sehen den Download nur bei publizierten Updates.
+
+### Projektbericht Prozessentwicklung
+
+Admin → Export/Import → «Projektbericht Prozessentwicklung» (zuhanden Gemeinderat und RGPK). Berichtszeitraum (Von/Bis) wählen, optional archivierte Projekte einbeziehen. Der Bericht enthält ein Dashboard mit Kennzahlen (Status, Updates pro Monat, Abteilungen, nächste Termine, Projektübersicht) und pro Projekt alle Kopfdaten mit Beschrieb, angestrebter Wirkung und den publizierten Updates im Zeitraum (neueste zuerst). Das PDF ist im A4-Format mit Seitenzahlen: Seite 1 zeigt die Kennzahlen, Seite 2 Abteilungen, Termine und Projektübersicht, danach beginnt jedes Projekt auf einer neuen Seite. «Vorschau im Browser» zeigt denselben Inhalt als HTML. Direkt: `/api/admin/pdf/rechenschaftsbericht?von=2026-01-01&bis=2026-12-31&archiv=1`.

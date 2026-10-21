@@ -124,7 +124,7 @@ function docHeader(context: string, docinfo: string, logoUrl: string) {
 </header>`;
 }
 
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
