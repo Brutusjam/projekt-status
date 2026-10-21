@@ -129,6 +129,17 @@ Den Seed nicht erneut ausführen, wenn bereits produktive Daten vorliegen (Seed 
 - [ ] Genau eine Maschine: `fly status` / `fly scale show`
 - [ ] Volume gemountet: `fly volumes list`
 
+### Passwort vergessen / Konto gesperrt
+
+Benutzer auflisten bzw. ein temporäres Passwort setzen (aktiviert das Konto, Passwortwechsel beim nächsten Login):
+
+```bash
+sh scripts/reset-password.sh
+sh scripts/reset-password.sh vorname.name@example.ch
+```
+
+Die Sperre nach 5 Fehlversuchen gilt 15 Minuten und liegt nur im Speicher; ein Neustart hebt sie sofort auf: `fly machine restart -a projektcockpit-altdorf`.
+
 ### Backup
 
 - Das Volume enthält die SQLite-Datei **und** `uploads/` (PDF-Anhänge). Snapshots sichern beides.
