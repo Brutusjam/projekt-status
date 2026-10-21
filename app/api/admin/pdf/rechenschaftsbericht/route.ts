@@ -38,20 +38,34 @@ export async function GET(request: Request) {
     process.env.NEXTAUTH_URL ??
     process.env.APP_URL ??
     "http://localhost:3000";
+  const preview = searchParams.get("format") === "html";
   const html = renderRechenschaftsberichtHtml(report, {
     logoSrc: logoSource(`${baseUrl.replace(/\/$/, "")}/logo-altdorf.png`),
     fontFaces: embeddedFontFaces(),
+    preview,
   });
 
-  if (searchParams.get("format") === "html") {
+  if (preview) {
     return new NextResponse(html, {
       headers: { "Content-Type": "text/html; charset=utf-8" },
     });
   }
 
-  const pdf = await htmlToPdfBuffer(html, {
-    paged: { footerTemplate: rechenschaftsberichtFooter(report.erstelltAm) },
-  });
+  let pdf: Buffer;
+  try {
+    pdf = await htmlToPdfBuffer(html, {
+      paged: { footerTemplate: rechenschaftsberichtFooter(report.erstelltAm) },
+    });
+  } catch (error) {
+    console.error("PDF-Erzeugung Projektbericht fehlgeschlagen", error);
+    return NextResponse.json(
+      {
+        error:
+          "Die PDF-Erzeugung ist fehlgeschlagen. Nutze vorerst «Vorschau im Browser» und speichere über Drucken als PDF.",
+      },
+      { status: 500 },
+    );
+  }
   const stamp = bis.toISOString().slice(0, 10).replaceAll("-", "");
 
   return new NextResponse(new Uint8Array(pdf), {
