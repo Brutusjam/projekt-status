@@ -6,7 +6,10 @@ import {
 } from "@/lib/domain/report/rechenschaftsbericht";
 import { embeddedFontFaces, logoSource } from "@/lib/pdf/assets";
 import { htmlToPdfBuffer } from "@/lib/pdf/generate";
-import { renderRechenschaftsberichtHtml } from "@/lib/pdf/rechenschaftsbericht";
+import {
+  rechenschaftsberichtFooter,
+  renderRechenschaftsberichtHtml,
+} from "@/lib/pdf/rechenschaftsbericht";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
@@ -46,7 +49,9 @@ export async function GET(request: Request) {
     });
   }
 
-  const pdf = await htmlToPdfBuffer(html);
+  const pdf = await htmlToPdfBuffer(html, {
+    paged: { footerTemplate: rechenschaftsberichtFooter(report.erstelltAm) },
+  });
   const stamp = bis.toISOString().slice(0, 10).replaceAll("-", "");
 
   return new NextResponse(new Uint8Array(pdf), {

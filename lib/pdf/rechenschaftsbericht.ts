@@ -50,7 +50,12 @@ body {
   color: var(--ad-ink);
   background: var(--ad-bg);
 }
-.sheet { padding: 48px; }
+/* Seitenränder oben/unten setzt die PDF-Ausgabe (A4), seitlich das Sheet. */
+.sheet { padding: 0 48px; }
+.kpi, .grid-2, .legend__item, .termine li, .overview tr, .facts, .textblock, .entry, .empty, .notes {
+  break-inside: avoid;
+}
+.section-title, h2, h3 { break-after: avoid; }
 
 .ad-doc-header__top {
   display: flex; justify-content: space-between; align-items: flex-end;
@@ -80,6 +85,7 @@ h3 { font-size: 14px; }
 .num { font-variant-numeric: tabular-nums; }
 
 .section { margin-top: 36px; }
+.section--newpage { break-before: page; margin-top: 0; }
 .section-title {
   display: flex; align-items: baseline; justify-content: space-between;
   border-bottom: 1px solid var(--ad-rule-soft); padding-bottom: 6px; margin-bottom: 14px;
@@ -152,7 +158,7 @@ table.overview { width: 100%; border-collapse: collapse; }
 .notes { margin-top: 18px; font-size: 10.5px; color: var(--ad-ink-soft); }
 .notes p { margin: 2px 0; }
 
-.project { margin-top: 56px; padding-top: 22px; border-top: 3px solid var(--ad-ink); }
+.project { break-before: page; padding-top: 22px; border-top: 3px solid var(--ad-ink); }
 .project__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
 .project__head h2 { margin-top: 4px; }
 .facts {
@@ -193,10 +199,6 @@ table.overview { width: 100%; border-collapse: collapse; }
   border: 1px dashed var(--ad-rule-soft); border-radius: 10px; padding: 12px 14px; color: var(--ad-ink-soft);
 }
 
-.footer {
-  margin-top: 48px; padding-top: 10px; border-top: 1px solid var(--ad-rule-soft);
-  display: flex; justify-content: space-between; font-size: 10.5px; color: var(--ad-ink-soft);
-}
 `;
 
 const numberFormat = new Intl.NumberFormat("de-CH");
@@ -358,7 +360,7 @@ function renderDashboard(report: Rechenschaftsbericht): string {
       </div>
     </section>
 
-    <section class="section grid-2">
+    <section class="section section--newpage grid-2">
       <div>
         <div class="section-title"><h3>Projekte nach Abteilung</h3></div>
         ${abteilungen ? `<div class="bars">${abteilungen}</div>` : '<p class="muted">Keine Projekte.</p>'}
@@ -450,6 +452,15 @@ function renderProject(project: ReportProject, index: number, total: number): st
     </section>`;
 }
 
+/** Fusszeile mit Seitenzahl für die A4-Ausgabe (Playwright footerTemplate). */
+export function rechenschaftsberichtFooter(erstelltAm: Date): string {
+  return `
+<div style="width:100%;padding:0 48px;font-family:Inter,system-ui,sans-serif;font-size:8px;color:#555555;display:flex;justify-content:space-between;">
+  <span>Rechenschaftsbericht Projektportfolio, Gemeinde Altdorf, ${formatDate(erstelltAm)}</span>
+  <span>Seite <span class="pageNumber"></span> von <span class="totalPages"></span></span>
+</div>`;
+}
+
 export function renderRechenschaftsberichtHtml(
   report: Rechenschaftsbericht,
   options: { logoSrc: string; fontFaces?: string },
@@ -477,10 +488,6 @@ export function renderRechenschaftsberichtHtml(
 
     ${projects || '<div class="empty" style="margin-top:32px">Keine Projekte im Bericht.</div>'}
 
-    <div class="footer">
-      <span>Projektcockpit Prozessentwicklung, Gemeinde Altdorf</span>
-      <span>Erstellt am ${erstellt}</span>
-    </div>
   </div>
 </body>
 </html>`;
