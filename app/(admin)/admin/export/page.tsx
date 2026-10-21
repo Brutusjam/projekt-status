@@ -32,9 +32,9 @@ export default function AdminExportPage() {
 
       <section className="rounded-xl border border-border p-5 space-y-4">
         <div className="space-y-1">
-          <h2 className="font-medium">Rechenschaftsbericht</h2>
+          <h2 className="font-medium">Projektbericht Prozessentwicklung</h2>
           <p className="text-sm text-muted-foreground">
-            Gestalteter Bericht für die Rechnungsprüfungskommission: Dashboard mit
+            Gestalteter Bericht zuhanden Gemeinderat und RGPK: Dashboard mit
             Kennzahlen, danach pro Projekt alle Kopfdaten mit Beschrieb und
             angestrebter Wirkung sowie die publizierten Updates im
             Berichtszeitraum, neueste zuerst. Lässt du «Von» leer, werden alle
@@ -75,7 +75,7 @@ export default function AdminExportPage() {
             type="submit"
             className="inline-flex h-9 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/80"
           >
-            Rechenschaftsbericht als PDF
+            Projektbericht als PDF
           </button>
           <button
             type="submit"

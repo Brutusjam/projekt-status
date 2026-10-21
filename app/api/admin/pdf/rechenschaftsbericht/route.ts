@@ -57,7 +57,7 @@ export async function GET(request: Request) {
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="rechenschaftsbericht-${stamp}.pdf"`,
+      "Content-Disposition": `attachment; filename="projektbericht-prozessentwicklung-${stamp}.pdf"`,
     },
   });
 }

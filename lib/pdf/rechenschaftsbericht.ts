@@ -456,7 +456,7 @@ function renderProject(project: ReportProject, index: number, total: number): st
 export function rechenschaftsberichtFooter(erstelltAm: Date): string {
   return `
 <div style="width:100%;padding:0 48px;font-family:Inter,system-ui,sans-serif;font-size:8px;color:#555555;display:flex;justify-content:space-between;">
-  <span>Rechenschaftsbericht Projektportfolio, Gemeinde Altdorf, ${formatDate(erstelltAm)}</span>
+  <span>Projektbericht Prozessentwicklung, Gemeinde Altdorf, ${formatDate(erstelltAm)}</span>
   <span>Seite <span class="pageNumber"></span> von <span class="totalPages"></span></span>
 </div>`;
 }
@@ -474,14 +474,14 @@ export function renderRechenschaftsberichtHtml(
 <html lang="de-CH">
 <head>
   <meta charset="utf-8">
-  <title>Rechenschaftsbericht Projektportfolio</title>
+  <title>Projektbericht Prozessentwicklung</title>
   <style>${options.fontFaces ?? ""}${REPORT_STYLES}</style>
 </head>
 <body>
   <div class="sheet">
-    ${docHeader(`Rechenschaftsbericht<br>${erstellt}`, options.logoSrc)}
-    <div class="eyebrow">Zuhanden der Rechnungsprüfungskommission</div>
-    <h1>Rechenschaftsbericht Projektportfolio Prozessentwicklung</h1>
+    ${docHeader(`Projektbericht<br>${erstellt}`, options.logoSrc)}
+    <div class="eyebrow">Zuhanden Gemeinderat und RGPK</div>
+    <h1>Projektbericht Prozessentwicklung</h1>
     <p class="lead">Übersicht über alle Projekte mit Kennzahlen, Projektsteckbriefen und den publizierten Updates im Berichtszeitraum ${periodLabel(report)}.</p>
 
     ${renderDashboard(report)}
