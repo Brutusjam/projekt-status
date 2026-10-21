@@ -30,7 +30,9 @@ export async function htmlToPdfBuffer(
   try {
     const page = await browser.newPage({
       viewport: { width: 794, height: 1123 },
-      deviceScaleFactor: 2,
+      // page.pdf() rendert vektoriell; ein höherer Faktor kostet auf der
+      // 512-MB-Instanz nur Speicher.
+      deviceScaleFactor: 1,
     });
     page.setDefaultTimeout(STEP_TIMEOUT_MS);
     await page.setContent(html, { waitUntil: "load" });
