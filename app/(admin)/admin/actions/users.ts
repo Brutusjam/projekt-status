@@ -1,5 +1,6 @@
 "use server";
 
+import { CredentialsSignin } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { signIn, signOut, unstable_update } from "@/auth";
@@ -83,6 +84,10 @@ export async function loginAction(
 
     return { redirectTo: callbackUrl.startsWith("/admin") ? "/" : callbackUrl };
   } catch (error) {
+    // Auth.js v5 wirft bei falschen Zugangsdaten auch mit redirect: false
+    if (error instanceof CredentialsSignin) {
+      return { error: "Ungültige Anmeldedaten oder Konto gesperrt." };
+    }
     return handleActionError(error);
   }
 }
