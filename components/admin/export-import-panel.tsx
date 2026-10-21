@@ -27,8 +27,11 @@ export function ExportImportPanel() {
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = `projektcockpit-export-${new Date().toISOString().slice(0, 10)}.json`;
+    // Firefox: Element muss im DOM sein, Blob-URL erst später freigeben
+    document.body.appendChild(anchor);
     anchor.click();
-    URL.revokeObjectURL(url);
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   return (

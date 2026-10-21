@@ -40,6 +40,10 @@ export function ProjectReportForm({ defaultVon, defaultBis }: ProjectReportFormP
         const body = await response.json().catch(() => null);
         throw new Error(body?.error ?? `Der Server meldet Fehler ${response.status}.`);
       }
+      // Abgelaufene Sitzung: fetch folgt der Weiterleitung und liefert die Login-Seite
+      if (!response.headers.get("Content-Type")?.includes("application/pdf")) {
+        throw new Error("Die Sitzung ist abgelaufen. Bitte Seite neu laden und erneut anmelden.");
+      }
       const blob = await response.blob();
       const filename =
         response.headers.get("Content-Disposition")?.match(/filename="(.+?)"/)?.[1] ??
@@ -48,8 +52,12 @@ export function ProjectReportForm({ defaultVon, defaultBis }: ProjectReportFormP
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = filename;
+      // Firefox startet den Download nur über ein Element im DOM und bricht ihn ab,
+      // wenn die Blob-URL sofort wieder freigegeben wird.
+      document.body.appendChild(anchor);
       anchor.click();
-      URL.revokeObjectURL(url);
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (caught) {
       setError(
         caught instanceof DOMException && caught.name === "TimeoutError"
