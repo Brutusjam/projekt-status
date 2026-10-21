@@ -52,6 +52,19 @@ body {
 }
 /* Seitenränder oben/unten setzt die PDF-Ausgabe (A4), seitlich das Sheet. */
 .sheet { padding: 0 48px; }
+/* Gleiche Seitenaufteilung beim Drucken aus der Browser-Vorschau. */
+@page { size: A4; margin: 48px 0 56px; }
+.preview-bar {
+  position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 16px;
+  justify-content: space-between; padding: 10px 48px; margin-bottom: 32px;
+  background: var(--ad-surface); border-bottom: 1px solid var(--ad-rule-soft);
+}
+.preview-bar button {
+  font: 600 13px var(--ad-font-body); color: #fff; background: var(--ad-ink);
+  border: none; border-radius: 8px; padding: 8px 14px; cursor: pointer;
+}
+@media screen { .sheet { padding-top: 48px; padding-bottom: 48px; } }
+@media print { .preview-bar { display: none; } }
 .kpi, .grid-2, .legend__item, .termine li, .overview tr, .facts, .textblock, .entry, .empty, .notes {
   break-inside: avoid;
 }
@@ -463,7 +476,7 @@ export function rechenschaftsberichtFooter(erstelltAm: Date): string {
 
 export function renderRechenschaftsberichtHtml(
   report: Rechenschaftsbericht,
-  options: { logoSrc: string; fontFaces?: string },
+  options: { logoSrc: string; fontFaces?: string; preview?: boolean },
 ): string {
   const erstellt = formatDate(report.erstelltAm);
   const projects = report.projects
@@ -478,6 +491,10 @@ export function renderRechenschaftsberichtHtml(
   <style>${options.fontFaces ?? ""}${REPORT_STYLES}</style>
 </head>
 <body>
+  ${options.preview ? `<div class="preview-bar">
+    <span class="muted">Vorschau. Zum Speichern als PDF: Drucken und «Als PDF speichern» wählen.</span>
+    <button type="button" onclick="window.print()">Drucken / als PDF speichern</button>
+  </div>` : ""}
   <div class="sheet">
     ${docHeader(`Projektbericht<br>${erstellt}`, options.logoSrc)}
     <div class="eyebrow">Zuhanden Gemeinderat und RGPK</div>

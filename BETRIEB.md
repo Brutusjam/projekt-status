@@ -169,7 +169,7 @@ Manuell pro publiziertem Update über «Benachrichtigung senden». Voraussetzung
 
 ## PDF-Export
 
-Admin → Projekt → «PDF exportieren» oder Gesamtübersicht über `/api/admin/pdf/uebersicht`. Erfordert Playwright Chromium (im Docker-Image enthalten).
+Admin → Projekt → «PDF exportieren» oder Gesamtübersicht über `/api/admin/pdf/uebersicht`. Erfordert Playwright Chromium (im Docker-Image enthalten). Chromium startet mit `--disable-dev-shm-usage` (kleines `/dev/shm` auf fly.io) und bricht nach 45 Sekunden pro Schritt ab. Die Dauer jeder Erzeugung steht im Log (`fly logs`, Zeile «PDF erzeugt in … ms»).
 
 ## Datenregel R4
 
@@ -181,4 +181,4 @@ Pro Update kann genau ein PDF (max. 10 MB) angehängt werden. Dateien liegen unt
 
 ### Projektbericht Prozessentwicklung
 
-Admin → Export/Import → «Projektbericht Prozessentwicklung» (zuhanden Gemeinderat und RGPK). Berichtszeitraum (Von/Bis) wählen, optional archivierte Projekte einbeziehen. Der Bericht enthält ein Dashboard mit Kennzahlen (Status, Updates pro Monat, Abteilungen, nächste Termine, Projektübersicht) und pro Projekt alle Kopfdaten mit Beschrieb, angestrebter Wirkung und den publizierten Updates im Zeitraum (neueste zuerst). Das PDF ist im A4-Format mit Seitenzahlen: Seite 1 zeigt die Kennzahlen, Seite 2 Abteilungen, Termine und Projektübersicht, danach beginnt jedes Projekt auf einer neuen Seite. «Vorschau im Browser» zeigt denselben Inhalt als HTML. Direkt: `/api/admin/pdf/rechenschaftsbericht?von=2026-01-01&bis=2026-12-31&archiv=1`.
+Admin → Export/Import → «Projektbericht Prozessentwicklung» (zuhanden Gemeinderat und RGPK). Berichtszeitraum (Von/Bis) wählen, optional archivierte Projekte einbeziehen. Der Bericht enthält ein Dashboard mit Kennzahlen (Status, Updates pro Monat, Abteilungen, nächste Termine, Projektübersicht) und pro Projekt alle Kopfdaten mit Beschrieb, angestrebter Wirkung und den publizierten Updates im Zeitraum (neueste zuerst). Das PDF ist im A4-Format mit Seitenzahlen: Seite 1 zeigt die Kennzahlen, Seite 2 Abteilungen, Termine und Projektübersicht, danach beginnt jedes Projekt auf einer neuen Seite. «Vorschau im Browser» zeigt denselben Inhalt als HTML und lässt sich über «Drucken / als PDF speichern» direkt im Browser als PDF sichern (ohne Chromium auf dem Server). Direkt: `/api/admin/pdf/rechenschaftsbericht?von=2026-01-01&bis=2026-12-31&archiv=1`.
