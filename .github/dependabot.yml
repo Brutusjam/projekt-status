@@ -1,0 +1,18 @@
+# Dependabot fasst Sicherheits-Updates zu einem einzigen Pull Request zusammen,
+# statt für jedes Paket einen eigenen zu öffnen.
+# Reine Versions-Updates (ohne Sicherheitslücke) sind ausgeschaltet
+# (open-pull-requests-limit: 0); Sicherheits-Updates kommen weiterhin.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Zurich
+    open-pull-requests-limit: 0
+    groups:
+      sicherheits-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
