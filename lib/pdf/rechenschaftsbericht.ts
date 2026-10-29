@@ -189,6 +189,12 @@ table.overview { width: 100%; border-collapse: collapse; }
 .md p:last-child { margin-bottom: 0; }
 .md ul, .md ol { margin: 0 0 6px 0; padding-left: 18px; }
 .md li { margin: 2px 0; }
+.md h2, .md h3 { font-size: 1.05em; margin: 10px 0 4px 0; }
+.md h2:first-child, .md h3:first-child { margin-top: 0; }
+.md li > p { margin: 0; }
+.md blockquote { margin: 0 0 6px 0; padding-left: 10px; border-left: 2px solid #d4d4d4; font-style: italic; }
+.md hr { border: 0; border-top: 1px solid #d4d4d4; margin: 8px 0; }
+.md a { color: inherit; }
 
 .timeline { margin-top: 22px; }
 .timeline__list { margin-top: 10px; }

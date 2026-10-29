@@ -1,4 +1,9 @@
+import rehypeStringify from "rehype-stringify";
+import remarkParse from "remark-parse";
+import remarkRehype from "remark-rehype";
+import { unified } from "unified";
 import { formatDate } from "@/lib/format";
+import { markdownRemarkPlugins } from "@/lib/markdown/plugins";
 import { getProjektStatusLabel } from "@/lib/labels";
 import type { ProjektStatus } from "@/app/generated/prisma/client";
 
@@ -15,13 +20,6 @@ type ProjectPdfData = {
     kurztitel: string;
     detailtext: string;
   }>;
-};
-
-type OverviewProject = {
-  titel: string;
-  abteilung: string;
-  status: ProjektStatus;
-  letztesUpdate: string | null;
 };
 
 const DOC_STYLES = `
@@ -100,9 +98,12 @@ h2 {
 .md p { margin: 0 0 6px 0; }
 .md ul, .md ol { margin: 0 0 6px 0; padding-left: 20px; }
 .md li { margin: 2px 0; }
-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-th, td { border-bottom: 1px solid #e5e5e5; padding: 8px 4px; text-align: left; }
-th { font-weight: 700; }
+.md h2, .md h3 { font-size: 1.05em; margin: 10px 0 4px 0; }
+.md h2:first-child, .md h3:first-child { margin-top: 0; }
+.md li > p { margin: 0; }
+.md blockquote { margin: 0 0 6px 0; padding-left: 10px; border-left: 2px solid #d4d4d4; font-style: italic; }
+.md hr { border: 0; border-top: 1px solid #d4d4d4; margin: 8px 0; }
+.md a { color: inherit; }
 `;
 
 function docHeader(context: string, docinfo: string, logoUrl: string) {
@@ -132,59 +133,15 @@ export function escapeHtml(value: string): string {
     .replaceAll('"', "&quot;");
 }
 
-function renderInlineMarkdown(escaped: string): string {
-  return escaped
-    .replace(/&lt;u&gt;(.*?)&lt;\/u&gt;/g, "<u>$1</u>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/__(.+?)__/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/(^|\W)_(.+?)_(?=\W|$)/g, "$1<em>$2</em>");
-}
+const markdownProcessor = unified()
+  .use(remarkParse)
+  .use(markdownRemarkPlugins)
+  .use(remarkRehype)
+  .use(rehypeStringify);
 
-/** Einfache Markdown-Umsetzung für PDFs: Absätze, Listen, fett, kursiv, unterstrichen. */
+/** Markdown für PDFs – gleiche Umsetzung wie in der Webansicht, Roh-HTML ausser <u> entfällt. */
 export function markdownToHtml(text: string): string {
-  const blocks: string[] = [];
-  let paragraph: string[] = [];
-  let list: { tag: "ul" | "ol"; items: string[] } | null = null;
-
-  const flushParagraph = () => {
-    if (paragraph.length > 0) {
-      blocks.push(`<p>${paragraph.map(renderInlineMarkdown).join("<br>")}</p>`);
-      paragraph = [];
-    }
-  };
-  const flushList = () => {
-    if (list) {
-      const items = list.items.map((item) => `<li>${renderInlineMarkdown(item)}</li>`);
-      blocks.push(`<${list.tag}>${items.join("")}</${list.tag}>`);
-      list = null;
-    }
-  };
-
-  for (const rawLine of escapeHtml(text).split(/\r?\n/)) {
-    const line = rawLine.replace(/^#+\s+/, "");
-    const bullet = line.match(/^\s*[-*+]\s+(.*)$/);
-    const numbered = line.match(/^\s*\d+\.\s+(.*)$/);
-    const item = bullet ?? numbered;
-
-    if (item) {
-      const tag = bullet ? "ul" : "ol";
-      flushParagraph();
-      if (list && list.tag !== tag) flushList();
-      list ??= { tag, items: [] };
-      list.items.push(item[1]);
-    } else if (line.trim() === "") {
-      flushParagraph();
-      flushList();
-    } else {
-      flushList();
-      paragraph.push(line);
-    }
-  }
-  flushParagraph();
-  flushList();
-
-  return blocks.join("");
+  return String(markdownProcessor.processSync(text));
 }
 
 export function renderProjectPdfHtml(
@@ -230,47 +187,4 @@ export function renderProjectPdfHtml(
 </html>`;
 }
 
-export function renderOverviewPdfHtml(
-  projects: OverviewProject[],
-  logoUrl: string,
-): string {
-  const today = formatDate(new Date());
-  const rows = projects
-    .map(
-      (project) => `
-      <tr>
-        <td>${escapeHtml(project.titel)}</td>
-        <td>${escapeHtml(project.abteilung)}</td>
-        <td>${escapeHtml(getProjektStatusLabel(project.status))}</td>
-        <td>${project.letztesUpdate ? escapeHtml(project.letztesUpdate) : "–"}</td>
-      </tr>`,
-    )
-    .join("");
-
-  return `<!DOCTYPE html>
-<html lang="de-CH">
-<head>
-  <meta charset="utf-8">
-  <style>${DOC_STYLES}</style>
-</head>
-<body>
-  <div class="sheet">
-    ${docHeader("Prozess & Digital", `<strong>Gesamtübersicht<br>${today}</strong>`, logoUrl)}
-    <h1>Projektcockpit Prozessentwicklung</h1>
-    <table>
-      <thead>
-        <tr>
-          <th>Projekt</th>
-          <th>Abteilung</th>
-          <th>Status</th>
-          <th>Letztes Update</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </div>
-</body>
-</html>`;
-}
-
-export type { ProjectPdfData, OverviewProject };
+export type { ProjectPdfData };

@@ -1,236 +1,283 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { Markdown } from "@tiptap/markdown";
+import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
-  Eye,
+  Heading2,
+  Heading3,
+  IndentDecrease,
+  IndentIncrease,
   Italic,
+  Link,
   List,
   ListOrdered,
-  Pencil,
+  Minus,
+  Pilcrow,
+  Quote,
+  Redo2,
+  Strikethrough,
   Underline,
+  Undo2,
 } from "lucide-react";
-import { MarkdownContent } from "@/components/projekte/markdown-content";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-type MarkdownEditorProps = Omit<React.ComponentProps<"textarea">, "value">;
+type MarkdownEditorProps = {
+  id?: string;
+  name: string;
+  defaultValue?: string;
+  required?: boolean;
+  disabled?: boolean;
+  className?: string;
+};
 
-type InlineFormat = { before: string; after: string; placeholder: string };
-
-const INLINE_FORMATS = {
-  bold: { before: "**", after: "**", placeholder: "fetter Text" },
-  italic: { before: "*", after: "*", placeholder: "kursiver Text" },
-  underline: { before: "<u>", after: "</u>", placeholder: "unterstrichener Text" },
-} satisfies Record<string, InlineFormat>;
-
-const LIST_PREFIX = /^(\s*)(?:[-*+]|\d+\.)\s+/;
-
-function applyInline(textarea: HTMLTextAreaElement, format: InlineFormat) {
-  const { selectionStart: start, selectionEnd: end, value } = textarea;
-  const selected = value.slice(start, end);
-  const isWrapped =
-    value.slice(start - format.before.length, start) === format.before &&
-    value.slice(end, end + format.after.length) === format.after;
-
-  if (isWrapped) {
-    textarea.setRangeText(
-      selected,
-      start - format.before.length,
-      end + format.after.length,
-      "select",
-    );
-    return;
-  }
-
-  const text = selected || format.placeholder;
-  textarea.setRangeText(
-    `${format.before}${text}${format.after}`,
-    start,
-    end,
-    "end",
-  );
-  const innerStart = start + format.before.length;
-  textarea.setSelectionRange(innerStart, innerStart + text.length);
-}
-
-function applyList(textarea: HTMLTextAreaElement, ordered: boolean) {
-  const { selectionStart, selectionEnd, value } = textarea;
-  const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
-  const nextBreak = value.indexOf("\n", selectionEnd);
-  const lineEnd = nextBreak === -1 ? value.length : nextBreak;
-
-  const lines = value.slice(lineStart, lineEnd).split("\n");
-  const marker = (index: number) => (ordered ? `${index + 1}. ` : "- ");
-  const filled = lines.filter((line) => line.trim() !== "");
-  const isEmpty = filled.length === 0;
-  const alreadyFormatted =
-    !isEmpty &&
-    filled.every((line) =>
-      ordered ? /^\s*\d+\.\s+/.test(line) : /^\s*[-*+]\s+/.test(line),
-    );
-
-  let counter = 0;
-  const next = lines
-    .map((line) => {
-      if (line.trim() === "" && !isEmpty) return line;
-      const content = line.replace(LIST_PREFIX, "$1");
-      if (alreadyFormatted) return content;
-      return `${marker(counter++)}${content}`;
-    })
-    .join("\n");
-
-  // Listen brauchen eine Leerzeile davor, sonst hängt Markdown sie an den Absatz an.
-  const previousLine =
-    lineStart > 0
-      ? value.slice(value.lastIndexOf("\n", lineStart - 2) + 1, lineStart - 1)
-      : "";
-  const needsBlankLine =
-    !alreadyFormatted &&
-    previousLine.trim() !== "" &&
-    !LIST_PREFIX.test(previousLine);
-  const replacement = needsBlankLine ? `\n${next}` : next;
-
-  textarea.setRangeText(replacement, lineStart, lineEnd, "end");
-  textarea.setSelectionRange(
-    lineStart + replacement.length,
-    lineStart + replacement.length,
-  );
-}
-
-function continueList(textarea: HTMLTextAreaElement): boolean {
-  const { selectionStart, selectionEnd, value } = textarea;
-  if (selectionStart !== selectionEnd) return false;
-
-  const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
-  const line = value.slice(lineStart, selectionStart);
-  const match = line.match(/^(\s*)([-*+]|(\d+)\.)\s+/);
-  if (!match) return false;
-
-  // Leerer Listenpunkt + Enter beendet die Liste.
-  if (line.trim() === match[0].trim()) {
-    textarea.setRangeText("", lineStart, selectionStart, "end");
-    return true;
-  }
-
-  const marker = match[3] ? `${Number(match[3]) + 1}.` : match[2];
-  textarea.setRangeText(`\n${match[1]}${marker} `, selectionStart, selectionEnd, "end");
-  return true;
-}
-
-const TOOLS: Array<{
+type Tool = {
   label: string;
   icon: typeof Bold;
-  action: (textarea: HTMLTextAreaElement) => void;
-}> = [
-  { label: "Fett (Strg+B)", icon: Bold, action: (t) => applyInline(t, INLINE_FORMATS.bold) },
-  { label: "Kursiv (Strg+I)", icon: Italic, action: (t) => applyInline(t, INLINE_FORMATS.italic) },
-  { label: "Unterstrichen (Strg+U)", icon: Underline, action: (t) => applyInline(t, INLINE_FORMATS.underline) },
-  { label: "Aufzählung", icon: List, action: (t) => applyList(t, false) },
-  { label: "Nummerierte Liste", icon: ListOrdered, action: (t) => applyList(t, true) },
+  run: (editor: Editor) => void;
+  isActive?: (editor: Editor) => boolean;
+  canRun?: (editor: Editor) => boolean;
+};
+
+function toggleLink(editor: Editor) {
+  if (editor.isActive("link")) {
+    editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    return;
+  }
+  const url = window.prompt("Link-Adresse (z. B. https://www.example.ch)");
+  if (!url?.trim()) return;
+  const href = /^[a-z]+:/i.test(url.trim()) ? url.trim() : `https://${url.trim()}`;
+  editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
+}
+
+const TOOL_GROUPS: Tool[][] = [
+  [
+    {
+      label: "Absatz",
+      icon: Pilcrow,
+      run: (e) => e.chain().focus().setParagraph().run(),
+      isActive: (e) => e.isActive("paragraph"),
+    },
+    {
+      label: "Überschrift",
+      icon: Heading2,
+      run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run(),
+      isActive: (e) => e.isActive("heading", { level: 2 }),
+    },
+    {
+      label: "Zwischentitel",
+      icon: Heading3,
+      run: (e) => e.chain().focus().toggleHeading({ level: 3 }).run(),
+      isActive: (e) => e.isActive("heading", { level: 3 }),
+    },
+  ],
+  [
+    {
+      label: "Fett (Strg+B)",
+      icon: Bold,
+      run: (e) => e.chain().focus().toggleBold().run(),
+      isActive: (e) => e.isActive("bold"),
+    },
+    {
+      label: "Kursiv (Strg+I)",
+      icon: Italic,
+      run: (e) => e.chain().focus().toggleItalic().run(),
+      isActive: (e) => e.isActive("italic"),
+    },
+    {
+      label: "Unterstrichen (Strg+U)",
+      icon: Underline,
+      run: (e) => e.chain().focus().toggleUnderline().run(),
+      isActive: (e) => e.isActive("underline"),
+    },
+    {
+      label: "Durchgestrichen",
+      icon: Strikethrough,
+      run: (e) => e.chain().focus().toggleStrike().run(),
+      isActive: (e) => e.isActive("strike"),
+    },
+    {
+      label: "Link",
+      icon: Link,
+      run: toggleLink,
+      isActive: (e) => e.isActive("link"),
+    },
+  ],
+  [
+    {
+      label: "Aufzählung",
+      icon: List,
+      run: (e) => e.chain().focus().toggleBulletList().run(),
+      isActive: (e) => e.isActive("bulletList"),
+    },
+    {
+      label: "Nummerierte Liste",
+      icon: ListOrdered,
+      run: (e) => e.chain().focus().toggleOrderedList().run(),
+      isActive: (e) => e.isActive("orderedList"),
+    },
+    {
+      label: "Einzug vergrössern (Tab)",
+      icon: IndentIncrease,
+      run: (e) => e.chain().focus().sinkListItem("listItem").run(),
+      canRun: (e) => e.can().sinkListItem("listItem"),
+    },
+    {
+      label: "Einzug verkleinern (Shift+Tab)",
+      icon: IndentDecrease,
+      run: (e) => e.chain().focus().liftListItem("listItem").run(),
+      canRun: (e) => e.can().liftListItem("listItem"),
+    },
+  ],
+  [
+    {
+      label: "Zitat",
+      icon: Quote,
+      run: (e) => e.chain().focus().toggleBlockquote().run(),
+      isActive: (e) => e.isActive("blockquote"),
+    },
+    {
+      label: "Trennlinie",
+      icon: Minus,
+      run: (e) => e.chain().focus().setHorizontalRule().run(),
+    },
+  ],
+  [
+    {
+      label: "Rückgängig (Strg+Z)",
+      icon: Undo2,
+      run: (e) => e.chain().focus().undo().run(),
+      canRun: (e) => e.can().undo(),
+    },
+    {
+      label: "Wiederholen (Strg+Y)",
+      icon: Redo2,
+      run: (e) => e.chain().focus().redo().run(),
+      canRun: (e) => e.can().redo(),
+    },
+  ],
 ];
 
+const TOOLS = TOOL_GROUPS.flat();
+
+function Toolbar({ editor, disabled }: { editor: Editor; disabled?: boolean }) {
+  const state = useEditorState({
+    editor,
+    selector: ({ editor: e }) =>
+      TOOLS.map((tool) => ({
+        active: tool.isActive?.(e) ?? false,
+        enabled: tool.canRun?.(e) ?? true,
+      })),
+  });
+
+  let index = 0;
+  return (
+    <div
+      role="toolbar"
+      aria-label="Textformatierung"
+      className="flex flex-wrap items-center gap-0.5 border-b border-input bg-muted/40 px-1.5 py-1"
+    >
+      {TOOL_GROUPS.map((group, groupIndex) => (
+        <div key={groupIndex} className="flex items-center gap-0.5">
+          {groupIndex > 0 ? (
+            <span aria-hidden className="mx-1 h-5 w-px bg-border" />
+          ) : null}
+          {group.map((tool) => {
+            const { active, enabled } = state[index++];
+            const Icon = tool.icon;
+            return (
+              <button
+                key={tool.label}
+                type="button"
+                title={tool.label}
+                aria-label={tool.label}
+                aria-pressed={tool.isActive ? active : undefined}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => tool.run(editor)}
+                disabled={disabled || !enabled}
+                className={cn(
+                  "inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40",
+                  active && "bg-muted text-foreground",
+                )}
+              >
+                <Icon className="size-4" />
+              </button>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function MarkdownEditor({
+  id,
+  name,
+  defaultValue = "",
+  required,
+  disabled,
   className,
-  defaultValue,
-  onKeyDown,
-  ...props
 }: MarkdownEditorProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [value, setValue] = useState(defaultValue);
 
-  function run(action: (textarea: HTMLTextAreaElement) => void) {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    textarea.focus();
-    action(textarea);
-    textarea.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-
-  function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
-    onKeyDown?.(event);
-    if (event.defaultPrevented) return;
-
-    const textarea = event.currentTarget;
-    if (event.key === "Enter" && !event.shiftKey && continueList(textarea)) {
-      event.preventDefault();
-      return;
-    }
-
-    if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
-    const shortcut = {
-      b: INLINE_FORMATS.bold,
-      i: INLINE_FORMATS.italic,
-      u: INLINE_FORMATS.underline,
-    }[event.key.toLowerCase()];
-    if (shortcut) {
-      event.preventDefault();
-      applyInline(textarea, shortcut);
-    }
-  }
-
-
-  const showPreview = preview !== null;
+  const editor = useEditor({
+    immediatelyRender: false,
+    editable: !disabled,
+    extensions: [
+      StarterKit.configure({
+        code: false,
+        codeBlock: false,
+        heading: { levels: [2, 3] },
+        link: { openOnClick: false, autolink: true },
+      }),
+      Markdown.configure({ markedOptions: { gfm: true, breaks: true } }),
+    ],
+    content: defaultValue,
+    contentType: "markdown",
+    editorProps: {
+      attributes: {
+        class: cn(
+          "markdown-content markdown-content--editor min-h-24 px-3 py-2 outline-none",
+          className,
+        ),
+        role: "textbox",
+        "aria-multiline": "true",
+        ...(id ? { "aria-labelledby": `${id}-label` } : {}),
+      },
+    },
+    onUpdate: ({ editor: e }) => setValue(e.isEmpty ? "" : e.getMarkdown()),
+  });
 
   return (
-    <div className="overflow-hidden rounded-lg border border-input bg-background shadow-xs focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
-      <div
-        role="toolbar"
-        aria-label="Textformatierung"
-        className="flex flex-wrap items-center gap-0.5 border-b border-input bg-muted/40 px-1.5 py-1"
-      >
-        {TOOLS.map(({ label, icon: Icon, action }) => (
-          <button
-            key={label}
-            type="button"
-            title={label}
-            aria-label={label}
-            onClick={() => run(action)}
-            disabled={showPreview || props.disabled}
-            className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
-          >
-            <Icon className="size-4" />
-          </button>
-        ))}
-        <button
-          type="button"
-          onClick={() =>
-            setPreview(showPreview ? null : (textareaRef.current?.value ?? ""))
-          }
-          aria-pressed={showPreview}
-          className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          {showPreview ? (
-            <>
-              <Pencil className="size-3.5" /> Bearbeiten
-            </>
-          ) : (
-            <>
-              <Eye className="size-3.5" /> Vorschau
-            </>
-          )}
-        </button>
-      </div>
-      <Textarea
-        ref={textareaRef}
-        defaultValue={defaultValue}
-        onKeyDown={handleKeyDown}
-        className={cn(
-          "rounded-none border-0 shadow-none focus-visible:ring-0",
-          showPreview && "hidden",
-          className,
-        )}
-        {...props}
+    <div className="relative overflow-hidden rounded-lg border border-input bg-background shadow-xs focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+      {editor ? (
+        <Toolbar editor={editor} disabled={disabled} />
+      ) : (
+        <div className="h-[41px] border-b border-input bg-muted/40" />
+      )}
+      {editor ? (
+        <EditorContent editor={editor} />
+      ) : (
+        <div className={cn("min-h-24 px-3 py-2", className)} />
+      )}
+      {/*
+        Trägt den Markdown-Text ins Formular und zeigt die Pflichtfeld-Meldung des Browsers.
+        Bewusst <textarea>: ein <input> würde die Zeilenumbrüche entfernen.
+      */}
+      <textarea
+        id={id}
+        name={name}
+        value={value}
+        required={required}
+        disabled={disabled}
+        onChange={() => {}}
+        onFocus={() => editor?.commands.focus()}
+        tabIndex={-1}
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 left-4 h-px w-px opacity-0"
       />
-      {showPreview ? (
-        <div className={cn("min-h-24 px-3 py-2", className)}>
-          {preview.trim() ? (
-            <MarkdownContent content={preview} />
-          ) : (
-            <p className="text-sm text-muted-foreground">Noch kein Text.</p>
-          )}
-        </div>
-      ) : null}
     </div>
   );
 }

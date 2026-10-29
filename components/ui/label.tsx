@@ -33,7 +33,9 @@ export function FormField({
 }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={htmlFor}>{label}</Label>
+      <Label id={`${htmlFor}-label`} htmlFor={htmlFor}>
+        {label}
+      </Label>
       {children}
       <FieldError message={error} />
     </div>
