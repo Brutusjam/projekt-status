@@ -2,8 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { remarkUnderline } from "@/lib/markdown/remark-underline";
+import { markdownRemarkPlugins } from "@/lib/markdown/plugins";
 import { cn } from "@/lib/utils";
 
 type MarkdownContentProps = {
@@ -40,7 +39,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
 
   return (
     <div className={cn("markdown-content", className)}>
-      <Markdown remarkPlugins={[remarkGfm, remarkUnderline]}>{content}</Markdown>
+      <Markdown remarkPlugins={markdownRemarkPlugins}>{content}</Markdown>
     </div>
   );
 }

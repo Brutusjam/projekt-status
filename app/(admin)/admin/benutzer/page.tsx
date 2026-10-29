@@ -18,7 +18,7 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Administration"
+        eyebrow="Einstellungen"
         title="Benutzerverwaltung"
         description="Leserkonten anlegen, deaktivieren, löschen und Mail-Abo verwalten."
       />
