@@ -70,7 +70,7 @@ export function ProjectFormFields({
           />
         </FormField>
         <FormField
-          label="Ansprechperson (Kürzel)"
+          label="Ansprechperson"
           htmlFor="ansprechperson"
           error={state.fieldErrors?.ansprechperson}
         >
@@ -149,6 +149,7 @@ export function ProjectFormFields({
           name="kurzbeschrieb"
           defaultValue={initial?.kurzbeschrieb}
           required
+          className="min-h-72"
         />
       </FormField>
 
@@ -158,6 +159,7 @@ export function ProjectFormFields({
           name="wirkung"
           defaultValue={initial?.wirkung}
           required
+          className="min-h-72"
         />
       </FormField>
 
