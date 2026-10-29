@@ -4,6 +4,7 @@ type PageProps = {
   searchParams: Promise<{
     abteilung?: string;
     status?: string;
+    q?: string;
   }>;
 };
 
@@ -16,6 +17,9 @@ export default async function ProjekteRedirectPage({ searchParams }: PageProps) 
   }
   if (params.status) {
     query.set("status", params.status);
+  }
+  if (params.q) {
+    query.set("q", params.q);
   }
 
   const queryString = query.toString();

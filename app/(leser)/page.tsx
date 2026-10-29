@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ProjectCard } from "@/components/projekte/project-card";
 import { ProjectFilters } from "@/components/projekte/project-filters";
 import { ProjectListItem } from "@/components/projekte/project-list-item";
+import { ProjectSearch } from "@/components/projekte/project-search";
 import { StatusChips } from "@/components/projekte/status-chips";
 import { ViewToggle } from "@/components/projekte/view-toggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,12 +16,14 @@ import {
 import type { ProjectSummary } from "@/lib/domain/types";
 import { PROJEKT_STATUS_LABELS } from "@/lib/labels";
 import { prisma } from "@/lib/prisma";
+import { matchesSearch } from "@/lib/search";
 
 type PageProps = {
   searchParams: Promise<{
     abteilung?: string;
     status?: string;
     ansicht?: string;
+    q?: string;
   }>;
 };
 
@@ -53,6 +56,26 @@ function countByStatus(
     counts[project.status] += 1;
   }
   return counts;
+}
+
+function filterBySearch(
+  projects: ProjectSummary[],
+  query: string | undefined,
+): ProjectSummary[] {
+  return projects.filter((project) =>
+    matchesSearch(
+      [
+        project.titel,
+        project.abteilung,
+        project.ansprechperson,
+        PROJEKT_STATUS_LABELS[project.status],
+        project.kurzbeschrieb,
+        project.wirkung,
+        project.letztesUpdate?.kurztitel,
+      ],
+      query,
+    ),
+  );
 }
 
 function ProjectCollection({
@@ -94,14 +117,17 @@ export default async function HomePage({ searchParams }: PageProps) {
   const abteilung = params.abteilung;
   const status = parseStatus(params.status);
   const ansicht = params.ansicht === "karten" ? "karten" : "liste";
+  const suche = params.q;
 
-  const [projectsForFilters, archivedProjects, abteilungen] = await Promise.all(
-    [
+  const [allVisibleProjects, allArchivedProjects, abteilungen] =
+    await Promise.all([
       listVisibleProjects(prisma, { abteilung }),
       listArchivedProjects(prisma),
       listAbteilungen(prisma),
-    ],
-  );
+    ]);
+
+  const projectsForFilters = filterBySearch(allVisibleProjects, suche);
+  const archivedProjects = filterBySearch(allArchivedProjects, suche);
 
   const statusCounts = countByStatus(projectsForFilters);
   const projects = status
@@ -115,6 +141,10 @@ export default async function HomePage({ searchParams }: PageProps) {
         title="Projektübersicht"
         description="Alle aktiven Projekte. Filter nach Abteilung und Status. In der Timeline erscheinen nur publizierte Updates."
       />
+
+      <Suspense fallback={null}>
+        <ProjectSearch />
+      </Suspense>
 
       <Tabs defaultValue="aktiv">
         <TabsList>
@@ -167,7 +197,9 @@ export default async function HomePage({ searchParams }: PageProps) {
 
           {archivedProjects.length === 0 ? (
             <p className="rounded-xl border border-dashed border-border px-6 py-10 text-center text-muted-foreground">
-              Keine archivierten Projekte.
+              {suche
+                ? "Keine archivierten Projekte für diese Suche."
+                : "Keine archivierten Projekte."}
             </p>
           ) : (
             <ProjectCollection
