@@ -28,6 +28,13 @@ export function ProjectListItem({ project }: ProjectListItemProps) {
         </div>
 
         <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:gap-8">
+          <div className="min-w-0 sm:w-28">
+            <p className="eyebrow mb-0.5">Startdatum</p>
+            <p className="font-medium text-foreground">
+              {formatDate(project.startdatum)}
+            </p>
+          </div>
+
           <div className="min-w-0 sm:w-56">
             <p className="eyebrow mb-0.5">Letztes Update</p>
             {project.letztesUpdate ? (

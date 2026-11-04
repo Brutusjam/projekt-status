@@ -15,16 +15,18 @@ import { StatusBadge } from "@/components/projekte/status-badge";
 import { SearchInput } from "@/components/ui/search-input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { AdminProjectSummary } from "@/lib/domain/projects/admin-queries";
+import { formatDate } from "@/lib/format";
 import { PROJEKT_STATUS_LABELS } from "@/lib/labels";
 import { matchesSearch } from "@/lib/search";
 
-type SortKey = "titel" | "abteilung" | "status" | "updates";
+type SortKey = "titel" | "abteilung" | "status" | "startdatum" | "updates";
 type Sort = { key: SortKey; dir: "asc" | "desc" };
 
 const COLUMNS: { key: SortKey; label: string }[] = [
   { key: "titel", label: "Titel" },
   { key: "abteilung", label: "Abteilung" },
   { key: "status", label: "Status" },
+  { key: "startdatum", label: "Startdatum" },
   { key: "updates", label: "Updates" },
 ];
 
@@ -38,6 +40,10 @@ function compare(a: AdminProjectSummary, b: AdminProjectSummary, key: SortKey) {
       return a.abteilung.localeCompare(b.abteilung, "de-CH");
     case "status":
       return STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status);
+    case "startdatum":
+      return (
+        new Date(a.startdatum).getTime() - new Date(b.startdatum).getTime()
+      );
     case "updates":
       return (
         a.publiziertCount - b.publiziertCount || a.entwurfCount - b.entwurfCount
@@ -211,6 +217,9 @@ function ProjectTable({
               <td className="px-4 py-3 text-muted-foreground">{project.abteilung}</td>
               <td className="px-4 py-3">
                 <StatusBadge status={project.status as ProjektStatus} />
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                {formatDate(project.startdatum)}
               </td>
               <td className="px-4 py-3 text-muted-foreground">
                 {project.publiziertCount} publiziert, {project.entwurfCount} Entwürfe
