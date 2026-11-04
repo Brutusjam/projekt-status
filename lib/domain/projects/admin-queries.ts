@@ -38,6 +38,7 @@ export type AdminProjectSummary = {
   titel: string;
   abteilung: string;
   status: string;
+  startdatum: Date;
   archiviert: boolean;
   entwurfCount: number;
   publiziertCount: number;
@@ -70,6 +71,7 @@ export async function listAdminProjects(
       titel: true,
       abteilung: true,
       status: true,
+      startdatum: true,
       archiviert: true,
       updates: { select: { status: true } },
     },
@@ -81,6 +83,7 @@ export async function listAdminProjects(
     titel: p.titel,
     abteilung: p.abteilung,
     status: p.status,
+    startdatum: p.startdatum,
     archiviert: p.archiviert,
     entwurfCount: p.updates.filter((u) => u.status === "ENTWURF").length,
     publiziertCount: p.updates.filter((u) => u.status === "PUBLIZIERT").length,

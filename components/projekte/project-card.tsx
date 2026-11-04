@@ -35,6 +35,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <CardContent className="flex flex-1 flex-col justify-between gap-4 text-sm text-muted-foreground">
           <div className="grid gap-4">
             <div>
+              <p className="eyebrow mb-1">Startdatum</p>
+              <p className="font-medium text-foreground">
+                {formatDate(project.startdatum)}
+              </p>
+            </div>
+            <div>
               <p className="eyebrow mb-1">Letztes Update</p>
               {project.letztesUpdate ? (
                 <>
